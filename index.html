@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grace_Mart - E-Commerce</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+            text-align: center;
+        }
+        .header {
+            background: white;
+            padding: 10px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 24px;
+            font-weight: bold;
+            color: black;
+        }
+        .cart-icon {
+            position: fixed;
+            color: red;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            background: white;
+            padding: 10px;
+            border-radius: 50%;
+        }
+        .categories button {
+            background-color: orange;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            justify-content: center;
+            padding: 20px;
+        }
+        .product-card {
+            position: relative;
+            background: white;
+            color: black;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            box-shadow: 0 0 5px yellow;
+            cursor: pointer;
+            width: 100px;
+            height: 100px;
+        }
+        .product-price {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: red;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .product-label {
+            position: absolute;
+            bottom: -10px;
+            background: orange;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        .modal, .cart-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px gray;
+            text-align: center;
+            width: 300px;
+        }
+        .modal img {
+            width: 100px;
+            height: 100px;
+            border-radius: 10px;
+        }
+        .modal button, .cart-modal button {
+            background-color: orange;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+.cart-popup {
+    position: fixed;
+    bottom: 20px;
+    right: -350px; /* Start off-screen (right side) */
+    background: white;
+    padding: 5px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px gray;
+    width: 320px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: right 0.5s ease-in-out; /* Smooth right-to-left animation */
+}
+
+/* Animation to move the popup from right to left */
+.cart-popup.show {
+    right: 20px; /* Moves into the screen */
+}
+
+/* Animation to move the popup back out */
+.cart-popup.hide {
+    right: -350px; /* Moves out of the screen */
+}
+
+    </style>
+</head>
+<body>
+    <div class="header">🟡 Grace_Mart 🛒</div>
+    <div class="cart-icon" onclick="showCart()">🛒 (<span id="cart-count">0</span>)</div>
+
+    <div class="categories">
+        <button onclick="filterProducts('oil')">آئل</button>
+        <button onclick="filterProducts('dals')">دالیں</button>
+        <button onclick="filterProducts('ghee')">گھی</button>
+       
+    </div>
+
+    <div class="product-grid" id="product-container"></div>
+
+    <div class="modal" id="productModal">
+        <h2 id="modalTitle"></h2>
+        <img id="modalImage" src="" alt="Product Image">
+        <p>Price: <input type="text" id="modalPrice" readonly> </p>
+        <p>Quantity: <input type="number" id="modalQuantity" value="1" min="1"> کلو</p>
+        <button onclick="addToCart()">Add to Cart</button>
+        <button onclick="closeModal()">Close</button>
+    </div> 
+
+    <div class="cart-modal" id="cartModal">
+        <h2>Shopping Cart</h2>
+        <ul id="cart-items"></ul>
+        <button onclick="placeOrder()">Order</button>
+        <button onclick="closeCart()">Close</button>
+    </div>
+
+    <script>
+        const products = [
+            { id: 1, name: "آئل", category: "oil", price: 500, image: "https://nayabazar.pk/images/products/Yg2lrvcqL6wu7Lt.jpeg" },
+            { id: 2, name: "گھی", category: "ghee", price: 600, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSp5miZ9II9LWaA61E0xxKRGFXRRZ9Nu_V6xw&s" },
+            { id: 3, name: "چینی", category: "sugar", price: 100, image: "https://media.istockphoto.com/id/1371245517/photo/granulated-white-sugar-in-wooden-bowl-isolated-on-white-background-with-clipping-path.jpg?s=612x612&w=0&k=20&c=fdfohHyZbusyq_67gMgIRbubn5hMZEw4KyhX3_dsh6E=" },
+            { id: 4, name: "دال مسر", category: "dals", price: 300, image: "https://organicmandya.com/cdn/shop/files/MasoorDal_2_79eb580d-fdd3-49fd-86d5-adab5abdd0ed.jpg?v=1738227005&width=1000" }
+        ];
+        let cart = [];
+
+        function filterProducts(category) {
+            displayProducts(products.filter(p => p.category === category));
+        }
+
+      function displayProducts(products) {
+    document.getElementById("product-container").innerHTML = products.map(product => `
+        <div class="product-card" onclick="showProductModal(${product.id})">
+            <img src="${product.image}" alt="${product.name}" width="80" height="80" style="border-radius:10px; margin-bottom: 5px;">
+            <div class="product-price">Rs. ${product.price}</div>
+            <div class="product-label">${product.name}</div>
+        </div>
+    `).join("");
+}
+       function showProductModal(productId) {
+            const product = products.find(p => p.id === productId);
+            document.getElementById("modalTitle").innerText = product.name;
+            document.getElementById("modalImage").src = product.image;
+            document.getElementById("modalPrice").value = product.price;
+            document.getElementById("productModal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("productModal").style.display = "none";
+        }
+
+function addToCart() {
+    const quantity = document.getElementById("modalQuantity").value;
+
+    // Check if quantity is greater than 0
+    if (quantity > 0) {
+        const name = document.getElementById("modalTitle").innerText;
+        const price = document.getElementById("modalPrice").value;
+        cart.push({ name, price, quantity });
+        updateCart();
+        closeModal();
+        showCartPopup(); // ✅ Show the popup with right-to-left animation
+    } else {
+        alert("Please enter a valid quantity before adding to cart!");
+    }
+}
+
+
+        function updateCart() {
+            document.getElementById("cart-count").innerText = cart.length;
+        }
+
+        function showCart() {
+            document.getElementById("cart-items").innerHTML = cart.map((item, index) => `
+                <li>${item.name} - ${item.quantity}kg - Rs. ${item.price} 
+                    <button onclick="removeFromCart(${index})">Remove</button>
+                </li>
+            `).join("");
+            document.getElementById("cartModal").style.display = "block";
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+            showCart();
+        }
+
+        function closeCart() {
+            document.getElementById("cartModal").style.display = "none";
+        }
+
+        function placeOrder() {
+            if (cart.length === 0) {
+                alert("Your cart is empty!");
+                return;
+            }
+
+            let orderDetails = "🛒 *New Order Details:*\n\n";
+            cart.forEach((item, index) => {
+                orderDetails += `${index + 1}. ${item.name} - ${item.quantity}kg - Rs. ${item.price * item.quantity}\n`;
+            });
+
+            let totalAmount = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            orderDetails += `\n💰 *Total Amount:* Rs. ${totalAmount}\n📞 *Contact:* +923015304600`;
+
+            let encodedMessage = encodeURIComponent(orderDetails);
+            let whatsappURL = `https://wa.me/923015304600?text=${encodedMessage}`;
+
+            window.open(whatsappURL, "_blank");
+        }
+
+        displayProducts(products);
+function showCartPopup() {
+    const popup = document.getElementById("cartPopup");
+
+    // Show the popup (Move right to left)
+    popup.classList.add("show");
+    popup.classList.remove("hide");
+
+    // Hide the popup after 1 seconds (Move left to right)
+    setTimeout(() => {
+        popup.classList.add("hide");
+        popup.classList.remove("show");
+    }, 1000);
+}
+
+
+</script>
+<!-- ✅ ADD TO CART POPUP ✅ -->
+<div class="cart-popup" id="cartPopup">
+    <img id="popupImage" src="https://i.imgur.com/DZPenEi.png" alt="Added to Cart" width="320" height="50" style="border-radius: 10px;">
+</div>
+
+
+</body>
+</html>
