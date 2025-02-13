@@ -222,7 +222,7 @@
     <script>
         const products = [
             { id: 1, name: "سلطان آئل", category: "oil", price: 500, image: "https://nayabazar.pk/images/products/Yg2lrvcqL6wu7Lt.jpeg" },
-            { id: 2, name: "سلطان گھی", category: "ghee", price: 530, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSp5miZ9II9LWaA61E0xxKRGFXRRZ9Nu_V6xw&s" },
+            { id: 2, name: "سلطان گھی", category: "sultan ghee", price: 530, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSp5miZ9II9LWaA61E0xxKRGFXRRZ9Nu_V6xw&s" },
             { id: 3, name: "چینی", category: "sugar", price: 100, image: "https://media.istockphoto.com/id/1371245517/photo/granulated-white-sugar-in-wooden-bowl-isolated-on-white-background-with-clipping-path.jpg?s=612x612&w=0&k=20&c=fdfohHyZbusyq_67gMgIRbubn5hMZEw4KyhX3_dsh6E=" },
             { id: 4, name: "دال مسر", category: "dals", price: 300, image: "https://organicmandya.com/cdn/shop/files/MasoorDal_2_79eb580d-fdd3-49fd-86d5-adab5abdd0ed.jpg?v=1738227005&width=1000" }
         ];
@@ -452,107 +452,7 @@ function searchProducts() {
 <div class="cart-popup" id="cartPopup">
     <img id="popupImage" src="https://i.imgur.com/DZPenEi.png" alt="Added to Cart" width="320" height="50" style="border-radius: 10px;">
 </div>
-<script>
-  // Function to fetch GMT+5 time from AbstractAPI
-  async function getGMT5Time() {
-    try {
-      // Fetch real-time GMT+5 time from AbstractAPI
-      let response = await fetch("https://timezone.abstractapi.com/v1/current_time/?api_key=38d465d3cad045afa3128c33a9a8286f&location=Karachi, Pakistan");
-      let data = await response.json();
-      return new Date(data.datetime); // Return GMT+5 Date object
-    } catch (error) {
-      console.error("Error fetching GMT+5 time:", error);
-      return new Date(); // Fallback to device time if API fails
-    }
-  }
-  
-  // Function to check shop status (open/closed)
-  async function checkShopStatus() {
-    let currentTime = await getGMT5Time(); // Get real GMT+5 time
-    let currentHour = currentTime.getHours();
-    let currentMinute = currentTime.getMinutes();
-    
-    // Shop closes at 6 PM (18:00) and opens at 10 AM (10:00) GMT+5
-    let shopClosed = currentHour >= 18 || currentHour < 10;
-    
-    if (shopClosed) {
-      closeShop(currentTime);
-    } else {
-      openShop();
-    }
-    
-    // Check time every minute to update dynamically
-    setInterval(async () => {
-      let newTime = await getGMT5Time();
-      if (newTime.getHours() === 10 && newTime.getMinutes() === 0) {
-        location.reload(); // Refresh at 10:00 AM (GMT+5)
-      }
-    }, 60000); // Runs every 60 seconds
-  }
-  
-  // Function to close the shop and show countdown
-  function closeShop(currentTime) {
-    document.getElementById("product-container").style.display = "none"; // Hide products
-    
-    let closedScreen = document.createElement("div");
-    closedScreen.id = "closedScreen";
-    closedScreen.style = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: black; color: white; display: flex; flex-direction: column;
-        justify-content: center; align-items: center; text-align: center;
-        font-size: 24px; z-index: 9999;
-    `;
-    closedScreen.innerHTML = `
-        <h1> Shop is Closed🔒</h1>
-        <p>We will reopen at 10:00 AM (GMT+5)</p>
-        <p id="countdown"></p>
-    `;
-    document.body.appendChild(closedScreen);
-    
-    startCountdown(currentTime);
-  }
-  
-  // Function to start countdown
-  async function startCountdown(currentTime) {
-    let nextOpening = new Date(currentTime);
-    
-    // Set next opening time to 10:00 AM GMT+5
-    nextOpening.setHours(10, 0, 0, 0);
-    if (currentTime.getHours() >= 18) {
-      nextOpening.setDate(nextOpening.getDate() + 1); // If after 6 PM, set to next day
-    }
-    
-    function updateCountdown() {
-      let now = new Date();
-      let timeLeft = nextOpening - now;
-      
-      if (timeLeft <= 0) {
-        location.reload(); // Refresh page when shop opens
-        return;
-      }
-      
-      // Calculate hours, minutes, and seconds left
-      let hours = Math.floor(timeLeft / (1000 * 60 * 60));
-      let minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-      let seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-      
-      // Update countdown display
-      document.getElementById("countdown").innerText = `Reopening in: ${hours}h ${minutes}m ${seconds}s`;
-    }
-    
-    updateCountdown();
-    setInterval(updateCountdown, 1000); // Update every second
-  }
-  
-  // Function to open the shop
-  function openShop() {
-    let closedScreen = document.getElementById("closedScreen");
-    if (closedScreen) closedScreen.remove();
-    document.getElementById("product-container").style.display = "grid";
-  }
-  
-  // Run function on page load
-  checkShopStatus();
-</script>
+
+
 </body>
 </html>
