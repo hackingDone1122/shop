@@ -59,8 +59,8 @@
             border-radius: 15px;
             box-shadow: 0 0 5px yellow;
             cursor: pointer;
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
         }
         .product-price {
             position: absolute;
@@ -95,12 +95,12 @@
             width: 300px;
         }
         .modal img {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border-radius: 10px;
         }
         .modal button, .cart-modal button {
-            background-color: orange;
+            background-color: orange ;
             border: none;
             padding: 10px 20px;
             cursor: pointer;
@@ -131,6 +131,52 @@
 /* Animation to move the popup back out */
 .cart-popup.hide {
     right: -350px; /* Moves out of the screen */
+}
+.search-icon {
+    position: fixed;
+    top: 10px;
+    left: 20px;
+    cursor: pointer;
+    background: black;
+    padding: 9px;
+    border-radius: 15%;
+    box-shadow: 0 0 1px gray;
+}
+.search-container {
+    display: none; /* Hidden initially */
+    position: fixed;
+    top: 1px;
+    left: 20px;
+    padding: 5px;
+    text-align: center;
+}
+
+#searchBg {
+    position: absolute;
+    z-index: -1;
+}
+
+#searchInput {
+    position: absolute;
+    top: 20px;
+    left: 40px;
+    width: 200px;
+    padding: 5px;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    color: white;
+    outline: none;
+}
+
+/* Blinking cursor effect */
+#searchInput:focus {
+    caret-color: white;
+    animation: blinkCursor 1s infinite;
+}
+
+@keyframes blinkCursor {
+    1000% { caret-color: transparent; }
 }
 
     </style>
@@ -163,11 +209,20 @@
         <button onclick="placeOrder()">Order</button>
         <button onclick="closeCart()">Close</button>
     </div>
+<div class="search-icon" onclick="showSearchBar()">
+  <img id="searchIcon" src="https://i.imgur.com/XLx2bpN.png" alt="Search" width="30" height="30">
+</div>
+
+<div class="search-container" id="searchContainer">
+  <img src="https://i.imgur.com/ufrYiQ3.png" id="searchBg" alt="Search Background" width="300">
+  <input type="text" id="searchInput" placeholder="🔎 Search products..." oninput="searchProducts()" autofocus>
+</div>
+
 
     <script>
         const products = [
-            { id: 1, name: "آئل", category: "oil", price: 500, image: "https://nayabazar.pk/images/products/Yg2lrvcqL6wu7Lt.jpeg" },
-            { id: 2, name: "گھی", category: "ghee", price: 600, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSp5miZ9II9LWaA61E0xxKRGFXRRZ9Nu_V6xw&s" },
+            { id: 1, name: "سلطان آئل", category: "oil", price: 500, image: "https://nayabazar.pk/images/products/Yg2lrvcqL6wu7Lt.jpeg" },
+            { id: 2, name: "سلطان گھی", category: "ghee", price: 530, image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSp5miZ9II9LWaA61E0xxKRGFXRRZ9Nu_V6xw&s" },
             { id: 3, name: "چینی", category: "sugar", price: 100, image: "https://media.istockphoto.com/id/1371245517/photo/granulated-white-sugar-in-wooden-bowl-isolated-on-white-background-with-clipping-path.jpg?s=612x612&w=0&k=20&c=fdfohHyZbusyq_67gMgIRbubn5hMZEw4KyhX3_dsh6E=" },
             { id: 4, name: "دال مسر", category: "dals", price: 300, image: "https://organicmandya.com/cdn/shop/files/MasoorDal_2_79eb580d-fdd3-49fd-86d5-adab5abdd0ed.jpg?v=1738227005&width=1000" }
         ];
@@ -272,14 +327,232 @@ function showCartPopup() {
         popup.classList.remove("show");
     }, 1000);
 }
+function showSearchBar() {
+  let searchContainer = document.getElementById("searchContainer");
+  let searchIcon = document.getElementById("searchIcon");
 
+  // Toggle search container visibility
+  if (searchContainer.style.display === "block") {
+    searchContainer.style.display = "none"; // Hide if already visible
+    searchIcon.src = "https://i.imgur.com/XLx2bpN.png"; // Revert icon
+  } else {
+    searchContainer.style.display = "block"; // Show search bar
+    searchIcon.src = "https://i.imgur.com/ufrYiQ3.png"; // Change icon
+    document.getElementById("searchInput").focus(); // Focus input for cursor blinking
+  }
+}
 
+// Hide search bar when clicking outside
+document.addEventListener("click", function(event) {
+  let searchContainer = document.getElementById("searchContainer");
+  let searchIcon = document.getElementById("searchIcon");
+  let searchIconDiv = document.querySelector(".search-icon");
+
+  // If the clicked area is NOT the search container or the search icon, hide it
+  if (!searchContainer.contains(event.target) && !searchIconDiv.contains(event.target)) {
+    searchContainer.style.display = "none"; // Hide search bar
+    searchIcon.src = "https://i.imgur.com/XLx2bpN.png"; // Revert icon
+  }
+});
+// Function to normalize text for better search accuracy
+function normalizeText(text) {
+  return text
+    .replace(/آ/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ي/g, "ی")
+    .replace(/ے/g, "ی")
+    .replace(/ھ/g, "ہ")
+    .trim().toLowerCase();
+}
+
+// Function to calculate similarity between words (Levenshtein Distance)
+function getSimilarity(str1, str2) {
+  str1 = normalizeText(str1.toLowerCase());
+  str2 = normalizeText(str2.toLowerCase());
+  let costs = new Array();
+  for (let i = 0; i <= str1.length; i++) {
+    let lastValue = i;
+    for (let j = 0; j <= str2.length; j++) {
+      if (i === 0) {
+        costs[j] = j;
+      } else if (j > 0) {
+        let newValue = costs[j - 1];
+        if (str1.charAt(i - 1) !== str2.charAt(j - 1))
+          newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+        costs[j - 1] = lastValue;
+        lastValue = newValue;
+      }
+    }
+    if (i > 0) costs[str2.length] = lastValue;
+  }
+  return 1 - (costs[str2.length] / Math.max(str1.length, str2.length)); // Return similarity score
+}
+
+// Function to transliterate English words into Urdu sounds (AI-based)
+function transliterateToUrdu(text) {
+  let rules = [
+  { "en": "sugar", "ur": "چینی" },
+  { "en": "sugr", "ur": "چینی" },
+  { "en": "sugra", "ur": "چینی" },
+  { "en": "chini", "ur": "چینی" },
+  { "en": "chene", "ur": "چینی" },
+
+  { en: "sultan ghee", ur: "سلطان گھی" },
+  { en: "sultn ghee", ur: "سلطان گھی" },
+  { en: "sultan ghe", ur: "سلطان گھی" },
+  { en: "sultan ghi", ur: "سلطان گھی" },
+  { en: "sultaan ghee", ur: "سلطان گھی" },
+  { en: "sultan ghy", ur: "سلطان گھی" },
+  { en: "sultan gee", ur: "سلطان گھی" },
+  { en: "sultan", ur: "سلطان گھی" },
+  { en: "s", ur: "سلطان گھی" },
+  { en: "sul", ur: "سلطان گھی" },
+
+  { en: "sultan oil", ur: "سلطان آئل" },
+  { en: "oil", ur: "سلطان آئل" },
+  { en: "s", ur: "سلطان آئل" },
+  { en: "su", ur: "سلطان آئل" },
+  { en: "sultaan oil", ur: "سلطان آئل" },
+ 
+];
+  
+  let lowerText = text.toLowerCase().trim();
+  let match = rules.find(rule => lowerText.includes(rule.en));
+  return match ? match.ur : text; // Convert to Urdu if found
+}
+
+// Function to search products dynamically (Supports both English & Urdu with fuzzy matching)
+function searchProducts() {
+  let query = document.getElementById("searchInput").value.trim();
+  
+  if (!query) {
+    displayProducts(products); // Show all products if search is empty
+    return;
+  }
+  
+  let isEnglish = /^[A-Za-z\s]+$/.test(query);
+  
+  // If the search query is in English, transliterate to Urdu
+  if (isEnglish) {
+    query = transliterateToUrdu(query);
+  }
+  
+  let filteredProducts = products
+    .map(product => {
+      let similarity = getSimilarity(query, product.name);
+      return { ...product, similarity };
+    })
+    .filter(product => product.similarity > 0.4) // Adjust threshold for better matching
+    .sort((a, b) => b.similarity - a.similarity); // Sort by best match
+  
+  displayProducts(filteredProducts);
+}
 </script>
 <!-- ✅ ADD TO CART POPUP ✅ -->
 <div class="cart-popup" id="cartPopup">
     <img id="popupImage" src="https://i.imgur.com/DZPenEi.png" alt="Added to Cart" width="320" height="50" style="border-radius: 10px;">
 </div>
-
-
+<script>
+  // Function to fetch GMT+5 time from AbstractAPI
+  async function getGMT5Time() {
+    try {
+      // Fetch real-time GMT+5 time from AbstractAPI
+      let response = await fetch("https://timezone.abstractapi.com/v1/current_time/?api_key=38d465d3cad045afa3128c33a9a8286f&location=Karachi, Pakistan");
+      let data = await response.json();
+      return new Date(data.datetime); // Return GMT+5 Date object
+    } catch (error) {
+      console.error("Error fetching GMT+5 time:", error);
+      return new Date(); // Fallback to device time if API fails
+    }
+  }
+  
+  // Function to check shop status (open/closed)
+  async function checkShopStatus() {
+    let currentTime = await getGMT5Time(); // Get real GMT+5 time
+    let currentHour = currentTime.getHours();
+    let currentMinute = currentTime.getMinutes();
+    
+    // Shop closes at 6 PM (18:00) and opens at 10 AM (10:00) GMT+5
+    let shopClosed = currentHour >= 18 || currentHour < 10;
+    
+    if (shopClosed) {
+      closeShop(currentTime);
+    } else {
+      openShop();
+    }
+    
+    // Check time every minute to update dynamically
+    setInterval(async () => {
+      let newTime = await getGMT5Time();
+      if (newTime.getHours() === 10 && newTime.getMinutes() === 0) {
+        location.reload(); // Refresh at 10:00 AM (GMT+5)
+      }
+    }, 60000); // Runs every 60 seconds
+  }
+  
+  // Function to close the shop and show countdown
+  function closeShop(currentTime) {
+    document.getElementById("product-container").style.display = "none"; // Hide products
+    
+    let closedScreen = document.createElement("div");
+    closedScreen.id = "closedScreen";
+    closedScreen.style = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: black; color: white; display: flex; flex-direction: column;
+        justify-content: center; align-items: center; text-align: center;
+        font-size: 24px; z-index: 9999;
+    `;
+    closedScreen.innerHTML = `
+        <h1> Shop is Closed🔒</h1>
+        <p>We will reopen at 10:00 AM (GMT+5)</p>
+        <p id="countdown"></p>
+    `;
+    document.body.appendChild(closedScreen);
+    
+    startCountdown(currentTime);
+  }
+  
+  // Function to start countdown
+  async function startCountdown(currentTime) {
+    let nextOpening = new Date(currentTime);
+    
+    // Set next opening time to 10:00 AM GMT+5
+    nextOpening.setHours(10, 0, 0, 0);
+    if (currentTime.getHours() >= 18) {
+      nextOpening.setDate(nextOpening.getDate() + 1); // If after 6 PM, set to next day
+    }
+    
+    function updateCountdown() {
+      let now = new Date();
+      let timeLeft = nextOpening - now;
+      
+      if (timeLeft <= 0) {
+        location.reload(); // Refresh page when shop opens
+        return;
+      }
+      
+      // Calculate hours, minutes, and seconds left
+      let hours = Math.floor(timeLeft / (1000 * 60 * 60));
+      let minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+      let seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+      
+      // Update countdown display
+      document.getElementById("countdown").innerText = `Reopening in: ${hours}h ${minutes}m ${seconds}s`;
+    }
+    
+    updateCountdown();
+    setInterval(updateCountdown, 1000); // Update every second
+  }
+  
+  // Function to open the shop
+  function openShop() {
+    let closedScreen = document.getElementById("closedScreen");
+    if (closedScreen) closedScreen.remove();
+    document.getElementById("product-container").style.display = "grid";
+  }
+  
+  // Run function on page load
+  checkShopStatus();
+</script>
 </body>
 </html>
