@@ -242,13 +242,13 @@
     `).join("");
 }
        function showProductModal(productId) {
-            const product = products.find(p => p.id === productId);
-            document.getElementById("modalTitle").innerText = product.name;
-            document.getElementById("modalImage").src = product.image;
-            document.getElementById("modalPrice").value = product.price;
-            document.getElementById("productModal").style.display = "block";
-        }
-
+  const product = products.find(p => p.id === productId);
+  document.getElementById("modalTitle").innerText = product.name;
+  document.getElementById("modalImage").src = product.image;
+  document.getElementById("modalPrice").value = product.price;
+  document.getElementById("productModal").style.display = "block";
+  playProductClickSound(); // ✅ Play sound when clicking a product
+}
         function closeModal() {
             document.getElementById("productModal").style.display = "none";
         }
@@ -447,15 +447,21 @@ function searchProducts() {
   displayProducts(filteredProducts);
 }
 function playAddToCartSound() {
-    let audio = new Audio("https://assets.mixkit.co/active_storage/sfx/600/600-preview.mp3");
-    audio.play();
+  let audio = new Audio("https://assets.mixkit.co/active_storage/sfx/600/600-preview.mp3");
+  audio.volume = 0.6; // ✅ Set volume to 60% (medium)
+  audio.play();
 }
+function playProductClickSound() {
+  let audio = new Audio("https://assets.mixkit.co/active_storage/sfx/1989/1989-preview.mp3");
+  audio.volume = 0.5; // ✅ Medium volume
+  audio.play();
+}
+
 </script>
 <!-- ✅ ADD TO CART POPUP ✅ -->
 <div class="cart-popup" id="cartPopup">
     <img id="popupImage" src="https://i.imgur.com/DZPenEi.png" alt="Added to Cart" width="320" height="50" style="border-radius: 10px;">
 </div>
-
 
 </body>
 </html>
