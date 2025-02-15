@@ -256,19 +256,18 @@
 function addToCart() {
     const quantity = document.getElementById("modalQuantity").value;
 
-    // Check if quantity is greater than 0
     if (quantity > 0) {
         const name = document.getElementById("modalTitle").innerText;
         const price = document.getElementById("modalPrice").value;
         cart.push({ name, price, quantity });
         updateCart();
         closeModal();
-        showCartPopup(); // ✅ Show the popup with right-to-left animation
+        playAddToCartSound(); // ✅ Play sound when adding to cart
+        showCartPopup(); // ✅ Show the popup animation
     } else {
         alert("Please enter a valid quantity before adding to cart!");
     }
 }
-
 
         function updateCart() {
             document.getElementById("cart-count").innerText = cart.length;
@@ -446,6 +445,10 @@ function searchProducts() {
     .sort((a, b) => b.similarity - a.similarity); // Sort by best match
   
   displayProducts(filteredProducts);
+}
+function playAddToCartSound() {
+    let audio = new Audio("https://assets.mixkit.co/active_storage/sfx/600/600-preview.mp3");
+    audio.play();
 }
 </script>
 <!-- ✅ ADD TO CART POPUP ✅ -->
