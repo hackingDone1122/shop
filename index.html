@@ -259,19 +259,28 @@ function addToCart() {
   if (quantity > 0) {
     const name = document.getElementById("modalTitle").innerText;
     const price = document.getElementById("modalPrice").value;
+    
+    // ✅ Add product to cart array
     cart.push({ name, price, quantity });
+    
+    // ✅ Save cart to localStorage
+    localStorage.setItem("cart", JSON.stringify(cart));
+    
     updateCart();
-    showCartAnimation(); // ✅ Start the animation
+    showCartAnimation();
     closeModal();
-    playAddToCartSound(); // ✅ Play sound when adding to cart
-    showCartPopup(); // ✅ Show the popup animation
+    playAddToCartSound();
+    
   } else {
     alert("Please enter a valid quantity before adding to cart!");
   }
 }
         function updateCart() {
-            document.getElementById("cart-count").innerText = cart.length;
-        }
+  document.getElementById("cart-count").innerText = cart.length;
+  
+  // ✅ Save updated cart to localStorage
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
 
         function showCart() {
             document.getElementById("cart-items").innerHTML = cart.map((item, index) => `
@@ -283,10 +292,13 @@ function addToCart() {
         }
 
         function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCart();
-            showCart();
-        }
+  cart.splice(index, 1);
+  updateCart();
+  showCart();
+  
+  // ✅ Save updated cart to localStorage after removing a product
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
 
         function closeCart() {
             document.getElementById("cartModal").style.display = "none";
@@ -479,6 +491,15 @@ function showCartAnimation() {
     flyingImg.remove();
   }, 1000);
 }
+// ✅ Restore cart from localStorage when the page loads
+window.onload = function() {
+  let savedCart = localStorage.getItem("cart");
+  
+  if (savedCart) {
+    cart = JSON.parse(savedCart); // ✅ Convert saved data back to an array
+    updateCart();
+  }
+};
 </script>
 
 
