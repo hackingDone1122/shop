@@ -107,31 +107,7 @@
             border-radius: 10px;
             margin-top: 10px;
         }
-.cart-popup {
-    position: fixed;
-    bottom: 20px;
-    right: -350px; /* Start off-screen (right side) */
-    background: white;
-    padding: 5px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px gray;
-    width: 320px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: right 0.5s ease-in-out; /* Smooth right-to-left animation */
-}
 
-/* Animation to move the popup from right to left */
-.cart-popup.show {
-    right: 20px; /* Moves into the screen */
-}
-
-/* Animation to move the popup back out */
-.cart-popup.hide {
-    right: -350px; /* Moves out of the screen */
-}
 .search-icon {
     position: fixed;
     top: 10px;
@@ -178,7 +154,31 @@
 @keyframes blinkCursor {
     1000% { caret-color: transparent; }
 }
+@keyframes flyToCart {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(var(--x-move), var(--y-move)) scale(0.7);
+        opacity: 0.7;
+    }
+    100% {
+        transform: translate(var(--x-move), var(--y-move)) scale(0);
+        opacity: 0;
+    }
+}
 
+.flying-img {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    transition: transform 1s ease-in-out;
+    z-index: 1000;
+    pointer-events: none;
+    animation: flyToCart 1s ease-in-out forwards;
+}
     </style>
 </head>
 <body>
@@ -254,21 +254,21 @@
         }
 
 function addToCart() {
-    const quantity = document.getElementById("modalQuantity").value;
-
-    if (quantity > 0) {
-        const name = document.getElementById("modalTitle").innerText;
-        const price = document.getElementById("modalPrice").value;
-        cart.push({ name, price, quantity });
-        updateCart();
-        closeModal();
-        playAddToCartSound(); // ✅ Play sound when adding to cart
-        showCartPopup(); // ✅ Show the popup animation
-    } else {
-        alert("Please enter a valid quantity before adding to cart!");
-    }
+  const quantity = document.getElementById("modalQuantity").value;
+  
+  if (quantity > 0) {
+    const name = document.getElementById("modalTitle").innerText;
+    const price = document.getElementById("modalPrice").value;
+    cart.push({ name, price, quantity });
+    updateCart();
+    showCartAnimation(); // ✅ Start the animation
+    closeModal();
+    playAddToCartSound(); // ✅ Play sound when adding to cart
+    showCartPopup(); // ✅ Show the popup animation
+  } else {
+    alert("Please enter a valid quantity before adding to cart!");
+  }
 }
-
         function updateCart() {
             document.getElementById("cart-count").innerText = cart.length;
         }
@@ -313,19 +313,7 @@ function addToCart() {
         }
 
         displayProducts(products);
-function showCartPopup() {
-    const popup = document.getElementById("cartPopup");
 
-    // Show the popup (Move right to left)
-    popup.classList.add("show");
-    popup.classList.remove("hide");
-
-    // Hide the popup after 1 seconds (Move left to right)
-    setTimeout(() => {
-        popup.classList.add("hide");
-        popup.classList.remove("show");
-    }, 1000);
-}
 function showSearchBar() {
   let searchContainer = document.getElementById("searchContainer");
   let searchIcon = document.getElementById("searchIcon");
@@ -452,16 +440,47 @@ function playAddToCartSound() {
   audio.play();
 }
 function playProductClickSound() {
-  let audio = new Audio("https://assets.mixkit.co/active_storage/sfx/1989/1989-preview.mp3");
-  audio.volume = 0.5; // ✅ Medium volume
+  let audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2641/2641-preview.mp3");
+  audio.volume = 1; // ✅ Medium volume
   audio.play();
 }
-
+function showCartAnimation() {
+  // Find the "Add to Cart" button inside the modal
+  let button = document.querySelector("#productModal button");
+  let cartIcon = document.querySelector(".cart-icon");
+  
+  if (!button || !cartIcon) return;
+  
+  // Get positions of button and cart icon
+  let buttonRect = button.getBoundingClientRect();
+  let cartRect = cartIcon.getBoundingClientRect();
+  
+  // Create a flying image
+  let flyingImg = document.createElement("img");
+  flyingImg.src = "https://i.ibb.co/GvwfxjXc/add-to-cart.png"; // Small product image
+  flyingImg.classList.add("flying-img");
+  document.body.appendChild(flyingImg);
+  
+  // Set initial position near "Add to Cart" button
+  flyingImg.style.position = "fixed";
+  flyingImg.style.left = buttonRect.left + "px";
+  flyingImg.style.top = buttonRect.top + "px";
+  
+  // Calculate movement distance
+  let xMove = cartRect.left - buttonRect.left;
+  let yMove = cartRect.top - buttonRect.top;
+  
+  // Apply animation properties
+  flyingImg.style.setProperty("--x-move", xMove + "px");
+  flyingImg.style.setProperty("--y-move", yMove + "px");
+  
+  // Remove image after animation completes
+  setTimeout(() => {
+    flyingImg.remove();
+  }, 1000);
+}
 </script>
-<!-- ✅ ADD TO CART POPUP ✅ -->
-<div class="cart-popup" id="cartPopup">
-    <img id="popupImage" src="https://i.imgur.com/DZPenEi.png" alt="Added to Cart" width="320" height="50" style="border-radius: 10px;">
-</div>
+
 
 </body>
 </html>
