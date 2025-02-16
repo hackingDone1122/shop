@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -179,18 +180,108 @@
     pointer-events: none;
     animation: flyToCart 1s ease-in-out forwards;
 }
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes growShrink {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeInOut 3s ease-in-out forwards;
+}
+
+/* Add border-radius to Order Now */
+.order-header {
+    background: white;
+    padding: 10px;
+    border-radius: 20px;  /* Same as main header */
+    display: inline-block;
+    font-size: 24px;
+    font-weight: bold;
+    color: black;
+    position: relative;
+}
+
+/* Square Animation */
+.loading-square {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background-color: orange;
+    margin-left: 8px;
+    animation: growShrink 1s infinite alternate ease-in-out;
+}
+.categories-container {
+    overflow-x: auto; 
+    white-space: nowrap;
+    scroll-behavior: smooth;
+    width: 100%;
+    padding: 5px 0;  /* Reduce top and bottom padding */
+    -ms-overflow-style: none; 
+    scrollbar-width: none;  
+}
+
+.categories-container::-webkit-scrollbar {
+    display: none;
+}
+
+.categories {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 5px; /* Reduce gap between category buttons */
+    padding: 5px; /* Reduce padding inside category container */
+    margin-bottom: 5px; /* Reduce space between categories and products */
+}
+
+.categories button {
+    flex: 0 0 auto;
+    padding: 8px 15px; /* Slightly reduce button padding */
+    font-size: 16px; /* Reduce font size */
+    border-radius: 12px; 
+    background-color: orange;
+    color: black;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.categories button:active {
+    transform: scale(1.25);
+}
+
+/* Reduce space between product grid and categories */
+.product-grid {
+    padding-top: 5px;  /* Reduce top padding */
+    gap: 10px; /* Reduce gap between product items */
+}
     </style>
 </head>
 <body>
-    <div class="header">🟡 Grace_Mart 🛒</div>
+<div class="header" id="main-logo">🟡 Grace_Mart 🛒</div>
+<div class="header order-header" id="order-logo" style="display: none;">
+  Order Now
+  <div class="loading-square"></div>
+</div>
     <div class="cart-icon" onclick="showCart()">🛒 (<span id="cart-count">0</span>)</div>
 
-    <div class="categories">
-        <button onclick="filterProducts('oil')">آئل</button>
-        <button onclick="filterProducts('dals')">دالیں</button>
-        <button onclick="filterProducts('ghee')">گھی</button>
-       
-    </div>
+<div class="categories-container">
+  <div class="categories" id="categories">
+    <button onclick="filterProducts('oil')">آئل</button>
+    <button onclick="filterProducts('dals')">دالیں</button>
+    <button onclick="filterProducts('ghee')">گھی</button>
+    <button onclick="filterProducts('sugar')">چینی</button>
+    <button onclick="filterProducts('rice')">چاول</button>
+    <button onclick="filterProducts('flour')">آٹا</button>
+    <button onclick="filterProducts('spices')">مصالحے</button>
+  </div>
+</div>
 
     <div class="product-grid" id="product-container"></div>
 
@@ -492,16 +583,69 @@ function showCartAnimation() {
   }, 1000);
 }
 // ✅ Restore cart from localStorage when the page loads
+function switchLogos() {
+  setTimeout(() => {
+    document.getElementById("main-logo").style.display = "none"; // Hide first logo
+    document.getElementById("order-logo").style.display = "inline-block"; // Show second logo
+  }, 10000); // After 10 seconds
+
+  setTimeout(() => {
+    document.getElementById("order-logo").classList.add("fade-in"); // Apply fade-out effect
+  }, 15000); // After 5 seconds
+
+  setTimeout(() => {
+    document.getElementById("order-logo").style.display = "none"; // Hide second logo
+    document.getElementById("main-logo").style.display = "inline-block"; // Show first logo again
+    document.getElementById("order-logo").classList.remove("fade-in"); // Reset animation class
+  }, 18000); // After 3 seconds fade effect
+}
+
+// Run on page load and repeat every 15 seconds
 window.onload = function() {
-  let savedCart = localStorage.getItem("cart");
-  
-  if (savedCart) {
-    cart = JSON.parse(savedCart); // ✅ Convert saved data back to an array
-    updateCart();
-  }
+  switchLogos(); // First execution
+  setInterval(switchLogos, 18000); // Repeat every 18 seconds (full cycle)
 };
+const categories = document.getElementById("categories");
+let isDown = false;
+let startX;
+let scrollLeft;
+
+categories.addEventListener("mousedown", (e) => {
+  isDown = true;
+  startX = e.pageX - categories.offsetLeft;
+  scrollLeft = categories.scrollLeft;
+});
+
+categories.addEventListener("mouseleave", () => {
+  isDown = false;
+});
+
+categories.addEventListener("mouseup", () => {
+  isDown = false;
+});
+
+categories.addEventListener("mousemove", (e) => {
+  if (!isDown) return;
+  e.preventDefault();
+  const x = e.pageX - categories.offsetLeft;
+  const walk = (x - startX) * 2; // Adjust scrolling speed
+  categories.scrollLeft = scrollLeft - walk;
+});
+
+// Enable touch-based scrolling
+categories.addEventListener("touchstart", (e) => {
+  startX = e.touches[0].pageX - categories.offsetLeft;
+  scrollLeft = categories.scrollLeft;
+}, { passive: true });
+
+categories.addEventListener("touchmove", (e) => {
+  const x = e.touches[0].pageX - categories.offsetLeft;
+  const walk = (x - startX) * 2;
+  categories.scrollLeft = scrollLeft - walk;
+}, { passive: true });
 </script>
 
 
 </body>
 </html>
+
